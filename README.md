@@ -19,7 +19,7 @@
 
 ## Requisitos de sistema
 
-- Possuir a JDK 11 
+- Possuir a JDK 17 
 - Uma IDE ou editor de sua preferência
 
 ## Requisitos do Projeto
