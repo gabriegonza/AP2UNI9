@@ -13,12 +13,12 @@ public interface BancoRepository extends JpaRepository<Transferencia, Long> {
 
     List<Transferencia> findByDataBetween(LocalDateTime dataInicio, LocalDateTime dataFim);
 
-    Transferencia nomeOperadorTransacao(String nomeOperadorTransacao);
-
     List<Transferencia> findByNomeOperadorTransacao(String nomeOperador);
 
     List<Transferencia> findByDataBetweenAndNomeOperadorTransacao(LocalDateTime dataInicial, LocalDateTime dataFinal, String nomeOperador);
 
     List<Transferencia> findByTipoIgnoreCase(String tipoLowerCase);
+
+    List<Transferencia> findByData(LocalDateTime dataInicio);
 }
 

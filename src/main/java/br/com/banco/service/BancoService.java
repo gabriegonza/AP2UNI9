@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+
 import java.util.List;
 
 
@@ -19,41 +20,66 @@ public class BancoService {
         return (List<Transferencia>) bancoRepository.findAll();
     }
 
-    public List<Transferencia>  getTransferenciasByIdConta(long contaId) {
-        List<Transferencia> idExist = bancoRepository.findByContaId(contaId);
+    public List<Transferencia> getTransferenciasByIdConta(String contaId) {
+        if (!contaId.matches("^\\d+$")) {
+            throw new BadRequestException("Conta deve ser um número válido");
+        }
+
+        long contaIdLong = Long.parseLong(contaId); // Converte a entrada para um tipo long
+        List<Transferencia> idExist = bancoRepository.findByContaId(contaIdLong);
+
         if (idExist.isEmpty()) {
             throw new BadRequestException("Conta inexistente");
         }
-
-        return bancoRepository.findByContaId(contaId);
+        return bancoRepository.findByContaId(contaIdLong);
     }
 
     public List<Transferencia> buscarTransferenciasPorData(LocalDateTime dataInicio, LocalDateTime dataFim) {
-        List<Transferencia> idExist =  bancoRepository.findByDataBetween(dataInicio, dataFim);
-        if (idExist.isEmpty()) {
-            throw new BadRequestException("Não há tranferencia para esse intervalo de data");
+        List<Transferencia> transferencias;
+        if (dataFim != null) {
+            transferencias = bancoRepository.findByDataBetween(dataInicio, dataFim);
+        } else {
+            transferencias = bancoRepository.findByData(dataInicio);
         }
-        return bancoRepository.findByDataBetween(dataInicio, dataFim);
+
+        if (transferencias.isEmpty()) {
+            throw new BadRequestException("Não há transferência para esse intervalo de data");
+        }
+
+        return transferencias;
     }
 
-    public Transferencia nomeOperadorTransacao(String nomeOperadorTransacao) {
-        Transferencia nameExist = bancoRepository.nomeOperadorTransacao(nomeOperadorTransacao);
-        if (nameExist == null){
-            throw new BadRequestException("Nome inexistente");
+    public List<Transferencia> nomeOperadorTransacao(String nomeOperador) {
+        String nameCase = nomeOperador.toUpperCase();
+        List<Transferencia> nameExist = bancoRepository.findByNomeOperadorTransacao(nameCase);
+        if (nameExist.isEmpty()) {
+            throw new BadRequestException("Nome não cadastrado no banco");
         }
-        return bancoRepository.nomeOperadorTransacao(nomeOperadorTransacao);
+        return nameExist;
     }
 
-    public List<Transferencia> obterTransferenciasPorPeriodoEOperador(LocalDateTime dataInicial, LocalDateTime dataFinal, String nomeOperador) {
-        if (dataInicial != null && dataFinal != null && nomeOperador != null) {
-            return bancoRepository.findByDataBetweenAndNomeOperadorTransacao(dataInicial, dataFinal, nomeOperador);
-        } else if (dataInicial != null && dataFinal != null) {
-            return bancoRepository.findByDataBetween(dataInicial, dataFinal);
+    public List<Transferencia> buscarTransferenciasPorNomeEData(String nomeOperador, LocalDateTime dataInicio, LocalDateTime dataFim) {
+        List<Transferencia> resultado;
+
+        if (nomeOperador != null) {
+            nomeOperador = nomeOperador.toUpperCase();
+        }
+
+        if (nomeOperador != null && dataInicio != null && dataFim != null) {
+            resultado = bancoRepository.findByDataBetweenAndNomeOperadorTransacao(dataInicio, dataFim, nomeOperador);
+        } else if (dataInicio != null && dataFim != null) {
+            resultado = buscarTransferenciasPorData(dataInicio, dataFim);
         } else if (nomeOperador != null) {
-            return bancoRepository.findByNomeOperadorTransacao(nomeOperador);
+            return nomeOperadorTransacao(nomeOperador);
         } else {
             return bancoRepository.findAll();
         }
+
+        if (resultado.isEmpty()) {
+            throw new BadRequestException("Nenhum resultado encontrado");
+        }
+
+        return resultado;
     }
 
     public List<Transferencia> findByTipo(String tipo) {

@@ -1,7 +1,10 @@
 package br.com.banco.domain;
 
-import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
+
+
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+
 import java.util.Objects;
 
 
